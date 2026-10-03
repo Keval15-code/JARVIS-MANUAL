@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. // Comprehensive Build Manual</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Rajdhani:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deepBg: '#03050A',
+                        surface: '#0B1120',
+                        surfaceLight: '#151F32',
+                        cyan: { main: '#00f3ff', dim: 'rgba(0, 243, 255, 0.1)', glow: 'rgba(0, 243, 255, 0.3)' },
+                        amber: { main: '#f59e0b', dim: 'rgba(245, 158, 11, 0.1)' },
+                        red: { main: '#ef4444', dim: 'rgba(239, 68, 68, 0.1)' },
+                        syntax: { keyword: '#c678dd', string: '#98c379', function: '#61afef', comment: '#5c6370', number: '#d19a66', type: '#e5c07b' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Rajdhani', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    boxShadow: {
+                        'neon': '0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(0, 243, 255, 0.05)',
+                        'neon-amber': '0 0 15px rgba(245, 158, 11, 0.2), inset 0 0 20px rgba(245, 158, 11, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #03050A; color: #e2e8f0; overflow-x: hidden; }
+        
+        /* Grid Background */
+        .bg-grid {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: linear-gradient(to right, rgba(0, 243, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: -1; pointer-events: none;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #03050A; }
+        ::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00c2cc; }
+
+        /* Scroll Reveal */
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+
+        /* Arc Reactor CSS */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.4)); }
+            50% { filter: drop-shadow(0 0 35px rgba(0, 243, 255, 0.8)); }
+        }
+        .arc-reactor { animation: pulse-glow 3s infinite ease-in-out; }
+        .ring-1 { animation: spin 20s linear infinite; transform-origin: center; }
+        .ring-2 { animation: spin-reverse 15s linear infinite; transform-origin: center; }
+
+        /* Tech HUD Borders */
+        .hud-border {
+            position: relative;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            background: linear-gradient(135deg, rgba(11, 17, 32, 0.9) 0%, rgba(3, 5, 10, 0.95) 100%);
+            backdrop-filter: blur(10px);
+        }
+        .hud-border::before, .hud-border::after {
+            content: ''; position: absolute; width: 10px; height: 10px; border: 2px solid #00f3ff; transition: all 0.3s;
+        }
+        .hud-border::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .hud-border::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+        .hud-border:hover::before, .hud-border:hover::after { width: 20px; height: 20px; }
+
+        /* Code Console */
+        .console-container {
+            background: #0d1117;
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            border-top: 2px solid #00f3ff;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .tab-content { display: none; animation: fade-in 0.3s ease-out forwards; }
+        .tab-content.active { display: block; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .code-text { font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.6; color: #c9d1d9; }
+
+        /* Interactive Checkbox */
+        .hud-checkbox {
+            width: 22px; height: 22px; border: 1px solid #00f3ff; background: rgba(0,243,255,0.05);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+        }
+        .hud-checkbox.checked { background: #00f3ff; box-shadow: 0 0 10px #00f3ff; }
+        .hud-checkbox.checked::after { content: '✓'; color: #03050A; font-weight: bold; }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-main selection:text-deepBg">
+
+    <div class="bg-grid"></div>
+
+    <nav class="fixed top-0 w-full z-50 bg-deepBg/80 backdrop-blur-lg border-b border-cyan-main/20 shadow-neon">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div class="flex items-center gap-3 font-heading font-bold text-xl tracking-widest text-white">
+                <div class="w-8 h-8 relative flex items-center justify-center">
+                    <div class="absolute w-full h-full border border-cyan-main rounded-full animate-[spin_3s_linear_infinite] border-t-transparent"></div>
+                    <div class="w-2.5 h-2.5 bg-cyan-main rounded-full animate-pulse shadow-neon"></div>
+                </div>
+                J.A.R.V.I.S. MANUAL
+            </div>
+            <div class="hidden md:flex space-x-6 font-heading tracking-widest text-xs uppercase text-gray-400">
+                <a href="#intro" class="hover:text-cyan-main transition-colors">Intro</a>
+                <a href="#phase1" class="hover:text-cyan-main transition-colors">Ph.1: Hardware</a>
+                <a href="#phase2" class="hover:text-cyan-main transition-colors">Ph.2: AI & Sec</a>
+                <a href="#phase3" class="hover:text-cyan-main transition-colors">Ph.3: Reasoning</a>
+                <a href="#phase4" class="hover:text-cyan-main transition-colors">Ph.4: Integration</a>
+            </div>
+        </div>
+    </nav>
+
+    <header id="intro" class="pt-32 pb-16 px-4 flex flex-col items-center justify-center min-h-[85vh] relative">
+        <div class="arc-reactor mb-8 relative w-56 h-56 flex items-center justify-center reveal">
+            <svg viewBox="0 0 200 200" class="w-full h-full absolute">
+                <circle cx="100" cy="100" r="95" fill="none" stroke="#00f3ff" stroke-width="1" stroke-opacity="0.3" class="ring-1" stroke-dasharray="4 6"></circle>
+                <circle cx="100" cy="100" r="85" fill="none" stroke="#00f3ff" stroke-width="4" stroke-opacity="0.6" class="ring-2" stroke-dasharray="20 10 40 10"></circle>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#00f3ff" stroke-width="1" stroke-opacity="0.4"></circle>
+                <path d="M100 20 L100 40 M100 160 L100 180 M20 100 L40 100 M160 100 L180 100" stroke="#00f3ff" stroke-width="2" stroke-opacity="0.8"></path>
+                <circle cx="100" cy="100" r="40" fill="rgba(0, 243, 255, 0.05)" stroke="#00f3ff" stroke-width="2"></circle>
+                <circle cx="100" cy="100" r="20" fill="#00f3ff" filter="blur(5px)"></circle>
+                <circle cx="100" cy="100" r="10" fill="#ffffff"></circle>
+            </svg>
+        </div>
+        <div class="text-center reveal delay-100 z-10 w-full max-w-4xl">
+            <h2 class="font-heading text-cyan-main tracking-[0.4em] text-sm mb-4 uppercase">System Initialized</h2>
+            <h1 class="font-heading text-4xl md:text-6xl font-bold text-white mb-6 tracking-wider uppercase drop-shadow-lg">
+                Wearable AI Architecture
+            </h1>
+            <p class="font-sans text-lg text-gray-400 font-light max-w-2xl mx-auto uppercase tracking-widest border-b border-cyan-main/20 pb-8 mb-8">
+                Complete Build & Integration Manual
+            </p>
+        </div>
+
+        <!-- Team Roles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full px-4 reveal delay-200">
+            <div class="hud-border p-6 hover:shadow-neon transition-all">
+                <h3 class="font-heading text-xl text-cyan-main font-bold tracking-widest uppercase mb-2">Person 1: Hardware</h3>
+                <p class="text-gray-300 text-sm leading-relaxed">Handles physical edge devices, acoustics, wiring, safety protocols, and deployment of ESP32 embedded C++ firmware.</p>
+            </div>
+            <div class="hud-border p-6 hover:shadow-neon transition-all border-amber-main/30">
+                <h3 class="font-heading text-xl text-amber-main font-bold tracking-widest uppercase mb-2">Person 2: AI & Software</h3>
+                <p class="text-gray-300 text-sm leading-relaxed">Handles the local Python bridge, wake-word detection, biometric voice authentication, and Gemini/TTS cloud API integration.</p>
+            </div>
+        </div>
+    </header>
+
+    <section id="phase1" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-cyan-main/10">
+        <div class="reveal mb-12">
+            <h2 class="font-heading text-3xl font-bold text-white mb-2 flex items-center gap-4 uppercase tracking-widest">
+                <span class="w-8 h-1 bg-cyan-main"></span> Phase 1: Hardware Bench
+            </h2>
+            <p class="text-gray-400 text-sm ml-12 font-mono">Establish physical pathways and stream data across local network.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- BOM & SD Setup -->
+            <div class="lg:col-span-1 space-y-6 reveal">
+                <div class="hud-border p-6">
+                    <h3 class="font-heading text-lg text-cyan-main font-bold mb-4 tracking-widest uppercase border-b border-cyan-main/20 pb-2">Master BOM</h3>
+                    <ul class="space-y-3 text-sm text-gray-300 font-sans">
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 2× ESP32-S3-WROOM-1 Boards</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 1× INMP441 Digital Mic</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 1× MAX98357A Mono Amp</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 2× 2-Inch Drivers (4 Ω, 3W)</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 1× WS2812B NeoPixel Ring (24)</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 1× MicroSD Breakout + 16GB</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 1× 5V 2.4A+ USB Power Bank</li>
+                        <li class="flex items-start gap-2"><span class="text-cyan-main">▶</span> 1000µF Cap, 330Ω, 100kΩ Resistors</li>
+                    </ul>
+                </div>
+                <div class="bg-surface border border-cyan-dim p-5">
+                    <h4 class="font-heading text-sm text-white font-bold uppercase mb-2">MicroSD Formatting</h4>
+                    <p class="text-xs text-gray-400">Format to <span class="text-cyan-main font-mono">FAT32</span> with <span class="text-cyan-main font-mono">32KB</span> allocation unit. Create master folder named <code class="bg-black px-1 text-white">memory</code> on root.</p>
+                </div>
+            </div>
+
+            <!-- Wiring Tables -->
+            <div class="lg:col-span-2 space-y-6 reveal delay-100">
+                <!-- Sensory Table -->
+                <div>
+                    <h3 class="font-heading text-md text-cyan-main font-bold mb-2 tracking-widest uppercase">ESP32-S3 #1: Sensory Node</h3>
+                    <div class="overflow-x-auto border border-cyan-dim rounded">
+                        <table class="w-full text-left font-sans text-sm">
+                            <thead class="bg-cyan-main/10 text-cyan-main font-mono text-xs uppercase">
+                                <tr><th class="p-3">Component</th><th class="p-3">Pin</th><th class="p-3">Target</th><th class="p-3 hidden sm:table-cell">Note</th></tr>
+                            </thead>
+                            <tbody class="text-gray-300 divide-y divide-cyan-main/10">
+                                <tr class="hover:bg-cyan-main/5 transition-colors"><td class="p-3">INMP441</td><td class="p-3 text-cyan-main font-mono">VDD</td><td class="p-3">3.3V Out</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">System logic power</td></tr>
+                                <tr class="hover:bg-cyan-main/5 transition-colors"><td class="p-3">INMP441</td><td class="p-3 text-cyan-main font-mono">GND / L/R</td><td class="p-3">Common GND</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">Left Channel Config</td></tr>
+                                <tr class="hover:bg-cyan-main/5 transition-colors"><td class="p-3">INMP441</td><td class="p-3 text-cyan-main font-mono">WS / SCK / SD</td><td class="p-3 font-mono">GPIO 42, 2, 41</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">I2S Interface</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Action Table -->
+                <div>
+                    <h3 class="font-heading text-md text-amber-main font-bold mb-2 tracking-widest uppercase">ESP32-S3 #2: Action Node</h3>
+                    <div class="overflow-x-auto border border-amber-dim rounded">
+                        <table class="w-full text-left font-sans text-sm">
+                            <thead class="bg-amber-main/10 text-amber-main font-mono text-xs uppercase">
+                                <tr><th class="p-3">Component</th><th class="p-3">Pin</th><th class="p-3">Target</th><th class="p-3 hidden sm:table-cell">Note</th></tr>
+                            </thead>
+                            <tbody class="text-gray-300 divide-y divide-amber-main/10">
+                                <tr class="hover:bg-amber-main/5 transition-colors"><td class="p-3">MicroSD</td><td class="p-3 text-amber-main font-mono">CS/MOSI/SCK/MISO</td><td class="p-3 font-mono">GPIO 10,11,18,19</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">Hardware SPI</td></tr>
+                                <tr class="hover:bg-amber-main/5 transition-colors"><td class="p-3">MAX98357A</td><td class="p-3 text-amber-main font-mono">VIN</td><td class="p-3 font-mono">5V Rail</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">High-current supply</td></tr>
+                                <tr class="hover:bg-amber-main/5 transition-colors"><td class="p-3">MAX98357A</td><td class="p-3 text-amber-main font-mono">LRC / BCLK / DIN</td><td class="p-3 font-mono">GPIO 13, 12, 14</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">I2S Audio Stream</td></tr>
+                                <tr class="hover:bg-amber-main/5 transition-colors"><td class="p-3">WS2812B</td><td class="p-3 text-amber-main font-mono">5V / DIN</td><td class="p-3 font-mono">5V Rail / GPIO 4</td><td class="p-3 hidden sm:table-cell text-xs text-gray-500">Use 1000µF Cap & 330Ω</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="reveal delay-200">
+            <h3 class="font-heading text-lg text-white font-bold mb-4 tracking-widest uppercase">Firmware Deployment (C++)</h3>
+            <div class="console-container rounded-lg overflow-hidden">
+                <!-- Tab Headers -->
+                <div class="flex border-b border-cyan-dim bg-[#07090f]">
+                    <button class="ph1-tab-btn px-6 py-3 text-sm font-mono font-semibold text-cyan-main border-b-2 border-cyan-main bg-cyan-main/10 transition-all focus:outline-none" onclick="switchTab('ph1', 'node1', this)">
+                        Sensory Node (ESP32 #1)
+                    </button>
+                    <button class="ph1-tab-btn px-6 py-3 text-sm font-mono font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 hover:bg-white/5 transition-all focus:outline-none" onclick="switchTab('ph1', 'node2', this)">
+                        Action Node (ESP32 #2)
+                    </button>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="p-4 overflow-x-auto max-h-[400px] overflow-y-auto">
+                    <!-- Node 1 Code -->
+                    <div id="ph1-node1" class="tab-content active code-text">
+<pre><code><span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;WiFi.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;WiFiUdp.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;driver/i2s.h&gt;</span>
+
+<span class="text-syntax-keyword">const char*</span> WIFI_SSID = <span class="text-syntax-string">"YOUR_WIFI_NETWORK"</span>;
+<span class="text-syntax-keyword">const char*</span> WIFI_PASS = <span class="text-syntax-string">"YOUR_WIFI_PASSWORD"</span>;
+<span class="text-syntax-keyword">const char*</span> LAPTOP_IP = <span class="text-syntax-string">"192.168.1.100"</span>; <span class="text-syntax-comment">// REPLACE WITH PERSON 2'S IP</span>
+<span class="text-syntax-keyword">const int</span> UDP_PORT = <span class="text-syntax-number">12345</span>;
+
+<span class="text-syntax-keyword">#define</span> I2S_MIC_SCK <span class="text-syntax-number">2</span>
+<span class="text-syntax-keyword">#define</span> I2S_MIC_WS  <span class="text-syntax-number">42</span>
+<span class="text-syntax-keyword">#define</span> I2S_MIC_SD  <span class="text-syntax-number">41</span>
+
+WiFiUDP udp;
+<span class="text-syntax-keyword">#define</span> DMA_BUF_LEN <span class="text-syntax-number">512</span>
+<span class="text-syntax-type">int16_t</span> audio_buffer[DMA_BUF_LEN];
+
+<span class="text-syntax-type">void</span> <span class="text-syntax-function">setup</span>() {
+  Serial.<span class="text-syntax-function">begin</span>(<span class="text-syntax-number">115200</span>);
+  i2s_config_t i2s_config = {
+    .mode = (<span class="text-syntax-type">i2s_mode_t</span>)(I2S_MODE_MASTER | I2S_MODE_RX),
+    .sample_rate = <span class="text-syntax-number">16000</span>,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = <span class="text-syntax-number">4</span>,
+    .dma_buf_len = DMA_BUF_LEN,
+  };
+  i2s_pin_config_t pin_config = {
+    .bck_io_num = I2S_MIC_SCK,
+    .ws_io_num = I2S_MIC_WS,
+    .data_out_num = I2S_PIN_NO_CHANGE,
+    .data_in_num = I2S_MIC_SD
+  };
+  <span class="text-syntax-function">i2s_driver_install</span>(I2S_NUM_0, &i2s_config, <span class="text-syntax-number">0</span>, <span class="text-syntax-keyword">NULL</span>);
+  <span class="text-syntax-function">i2s_set_pin</span>(I2S_NUM_0, &pin_config);
+
+  WiFi.<span class="text-syntax-function">begin</span>(WIFI_SSID, WIFI_PASS);
+  <span class="text-syntax-keyword">while</span> (WiFi.<span class="text-syntax-function">status</span>() != WL_CONNECTED) { <span class="text-syntax-function">delay</span>(<span class="text-syntax-number">500</span>); }
+}
+
+<span class="text-syntax-type">void</span> <span class="text-syntax-function">loop</span>() {
+  <span class="text-syntax-type">size_t</span> bytes_read = <span class="text-syntax-number">0</span>;
+  <span class="text-syntax-type">esp_err_t</span> result = <span class="text-syntax-function">i2s_read</span>(I2S_NUM_0, audio_buffer, <span class="text-syntax-keyword">sizeof</span>(audio_buffer), &bytes_read, portMAX_DELAY);
+  
+  <span class="text-syntax-keyword">if</span> (result == ESP_OK && bytes_read > <span class="text-syntax-number">0</span>) {
+    udp.<span class="text-syntax-function">beginPacket</span>(LAPTOP_IP, UDP_PORT);
+    udp.<span class="text-syntax-function">write</span>((<span class="text-syntax-type">uint8_t</span>*)audio_buffer, bytes_read);
+    udp.<span class="text-syntax-function">endPacket</span>();
+  }
+}</code></pre>
+                    </div>
+
+                    <!-- Node 2 Code -->
+                    <div id="ph1-node2" class="tab-content code-text">
+<pre><code><span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;WiFi.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;WebSocketsClient.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;Adafruit_NeoPixel.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;SPI.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;SD.h&gt;</span>
+<span class="text-syntax-keyword">#include</span> <span class="text-syntax-string">&lt;driver/i2s.h&gt;</span>
+
+<span class="text-syntax-keyword">const char*</span> LAPTOP_IP = <span class="text-syntax-string">"192.168.1.100"</span>; 
+<span class="text-syntax-keyword">#define</span> I2S_AMP_BCLK <span class="text-syntax-number">12</span>
+<span class="text-syntax-keyword">#define</span> I2S_AMP_LRC  <span class="text-syntax-number">13</span>
+<span class="text-syntax-keyword">#define</span> I2S_AMP_DIN  <span class="text-syntax-number">14</span>
+<span class="text-syntax-keyword">#define</span> NEOPIXEL_PIN <span class="text-syntax-number">4</span>
+
+Adafruit_NeoPixel <span class="text-syntax-function">ring</span>(<span class="text-syntax-number">24</span>, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+WiFiServer <span class="text-syntax-function">audioServer</span>(<span class="text-syntax-number">8080</span>);
+WebSocketsClient wsClient;
+
+<span class="text-syntax-type">void</span> <span class="text-syntax-function">setup</span>() {
+  ring.<span class="text-syntax-function">begin</span>();
+  ring.<span class="text-syntax-function">setBrightness</span>(<span class="text-syntax-number">80</span>);
+  ring.<span class="text-syntax-function">fill</span>(ring.<span class="text-syntax-function">Color</span>(<span class="text-syntax-number">0</span>, <span class="text-syntax-number">50</span>, <span class="text-syntax-number">100</span>)); <span class="text-syntax-comment">// Dim Cyan</span>
+  ring.<span class="text-syntax-function">show</span>();
+
+  <span class="text-syntax-comment">// Config I2S for TX omitted for brevity (match doc specs)</span>
+  
+  WiFi.<span class="text-syntax-function">begin</span>(WIFI_SSID, WIFI_PASS);
+  <span class="text-syntax-keyword">while</span> (WiFi.<span class="text-syntax-function">status</span>() != WL_CONNECTED) { <span class="text-syntax-function">delay</span>(<span class="text-syntax-number">100</span>); }
+
+  audioServer.<span class="text-syntax-function">begin</span>();
+  wsClient.<span class="text-syntax-function">begin</span>(LAPTOP_IP, <span class="text-syntax-number">8081</span>, <span class="text-syntax-string">"/"</span>);
+}
+
+<span class="text-syntax-type">void</span> <span class="text-syntax-function">loop</span>() {
+  wsClient.<span class="text-syntax-function">loop</span>();
+  WiFiClient client = audioServer.<span class="text-syntax-function">available</span>();
+  <span class="text-syntax-keyword">if</span> (client) {
+    <span class="text-syntax-type">uint8_t</span> audioData[<span class="text-syntax-number">512</span>];
+    <span class="text-syntax-type">size_t</span> bytesWritten;
+    <span class="text-syntax-keyword">while</span> (client.<span class="text-syntax-function">connected</span>()) {
+      <span class="text-syntax-keyword">while</span> (client.<span class="text-syntax-function">available</span>()) {
+        <span class="text-syntax-type">int</span> bytesRead = client.<span class="text-syntax-function">read</span>(audioData, <span class="text-syntax-keyword">sizeof</span>(audioData));
+        <span class="text-syntax-keyword">if</span> (bytesRead > <span class="text-syntax-number">0</span>) {
+          <span class="text-syntax-function">i2s_write</span>(I2S_NUM_1, audioData, bytesRead, &bytesWritten, portMAX_DELAY);
+        }
+      }
+    }
+    client.<span class="text-syntax-function">stop</span>();
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="phase2" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-cyan-main/10 bg-surfaceLight/10">
+        <div class="reveal mb-12">
+            <h2 class="font-heading text-3xl font-bold text-white mb-2 flex items-center gap-4 uppercase tracking-widest">
+                <span class="w-8 h-1 bg-amber-main"></span> Phase 2: Local AI & Security
+            </h2>
+            <p class="text-gray-400 text-sm ml-12 font-mono">Wake-word engine and biometric voice profiles.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-1 space-y-6 reveal">
+                <div class="hud-border border-amber-main/30 p-6">
+                    <h3 class="font-heading text-lg text-amber-main font-bold mb-4 tracking-widest uppercase">Python Setup (Person 2)</h3>
+                    <ul class="space-y-4 text-sm text-gray-300 font-sans">
+                        <li><span class="text-amber-main">▶</span> Install Python 3.10+</li>
+                        <li><span class="text-amber-main">▶</span> Run package installer:<br>
+                            <code class="block mt-2 bg-black/50 p-2 border border-amber-main/20 text-xs text-gray-400 rounded">pip install pvporcupine speechbrain torch numpy sounddevice websockets google-genai edge-tts scipy</code>
+                        </li>
+                        <li><span class="text-amber-main">▶</span> Obtain free Picovoice Porcupine Access Key for wake-word.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 reveal delay-100">
+                <div class="console-container rounded-lg overflow-hidden border-t-amber-main">
+                    <div class="flex border-b border-amber-dim bg-[#07090f]">
+                        <button class="px-6 py-3 text-sm font-mono font-semibold text-amber-main border-b-2 border-amber-main bg-amber-main/10 transition-all focus:outline-none cursor-default">
+                            enroll.py (Voice Calibration)
+                        </button>
+                    </div>
+                    <div class="p-4 overflow-x-auto max-h-[350px] overflow-y-auto tab-content active code-text">
+<pre><code><span class="text-syntax-keyword">import</span> torch
+<span class="text-syntax-keyword">import</span> sounddevice <span class="text-syntax-keyword">as</span> sd
+<span class="text-syntax-keyword">import</span> numpy <span class="text-syntax-keyword">as</span> np
+<span class="text-syntax-keyword">import</span> os
+<span class="text-syntax-keyword">from</span> speechbrain.inference.speaker <span class="text-syntax-keyword">import</span> SpeakerRecognition
+
+spk_verifier = SpeakerRecognition.from_hparams(
+    source=<span class="text-syntax-string">"speechbrain/spkrec-ecapa-voxceleb"</span>, 
+    savedir=<span class="text-syntax-string">"tmpdir_spkrec"</span>
+)
+
+<span class="text-syntax-keyword">def</span> <span class="text-syntax-function">capture_enrollment</span>(user_name, filename):
+    <span class="text-syntax-function">print</span>(<span class="text-syntax-string">f"\n--- CALIBRATING {user_name.upper()} ---"</span>)
+    recordings = []
+    
+    <span class="text-syntax-keyword">for</span> i <span class="text-syntax-keyword">in</span> <span class="text-syntax-function">range</span>(<span class="text-syntax-number">3</span>):
+        <span class="text-syntax-function">input</span>(<span class="text-syntax-string">f"Press Enter to record phrase {i+1}/3 ('I am an authorized user of this system')..."</span>)
+        audio = sd.rec(<span class="text-syntax-function">int</span>(<span class="text-syntax-number">4</span> * <span class="text-syntax-number">16000</span>), samplerate=<span class="text-syntax-number">16000</span>, channels=<span class="text-syntax-number">1</span>, dtype=<span class="text-syntax-string">'float32'</span>)
+        sd.wait()
+        recordings.append(torch.tensor(audio.T))
+        <span class="text-syntax-function">print</span>(<span class="text-syntax-string">"Captured."</span>)
+    
+    embeddings = [spk_verifier.encode_batch(rec) <span class="text-syntax-keyword">for</span> rec <span class="text-syntax-keyword">in</span> recordings]
+    master_embedding = torch.mean(torch.stack(embeddings), dim=<span class="text-syntax-number">0</span>)
+    torch.save(master_embedding, filename)
+    <span class="text-syntax-function">print</span>(<span class="text-syntax-string">f"Vector saved to {filename}"</span>)
+
+<span class="text-syntax-keyword">if</span> __name__ == <span class="text-syntax-string">"__main__"</span>:
+    os.makedirs(<span class="text-syntax-string">"users"</span>, exist_ok=<span class="text-syntax-keyword">True</span>)
+    capture_enrollment(<span class="text-syntax-string">"Authorized User 1"</span>, <span class="text-syntax-string">"users/user1.pt"</span>)
+    capture_enrollment(<span class="text-syntax-string">"Authorized User 2"</span>, <span class="text-syntax-string">"users/user2.pt"</span>)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="phase3" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-cyan-main/10">
+        <div class="reveal mb-12">
+            <h2 class="font-heading text-3xl font-bold text-white mb-2 flex items-center gap-4 uppercase tracking-widest">
+                <span class="w-8 h-1 bg-cyan-main"></span> Phase 3: AI Reasoning Pipeline
+            </h2>
+            <p class="text-gray-400 text-sm ml-12 font-mono">Gemini generation pipeline with personality layer and Edge-TTS synthesis.</p>
+        </div>
+
+        <div class="mb-8 reveal">
+            <div class="border-l-4 border-cyan-main bg-cyan-main/5 p-6 rounded-r">
+                <h4 class="font-heading text-cyan-main uppercase tracking-widest font-bold mb-2">3.1 System Prompt (Personality Lock)</h4>
+                <p class="font-serif italic text-gray-300 text-lg leading-relaxed">"You are J.A.R.V.I.S., a witty, highly intelligent, and concise AI assistant. Respond respectfully and calmly. You must address the user as 'Sir' once per turn. Keep answers under three sentences unless solving technical calculations directly."</p>
+            </div>
+        </div>
+
+        <div class="reveal delay-100">
+            <div class="console-container rounded-lg overflow-hidden">
+                <div class="flex border-b border-cyan-dim bg-[#07090f]">
+                    <button class="px-6 py-3 text-sm font-mono font-semibold text-cyan-main border-b-2 border-cyan-main bg-cyan-main/10 transition-all focus:outline-none cursor-default">
+                        server.py (Master Bridge)
+                    </button>
+                </div>
+                <div class="p-4 overflow-x-auto max-h-[500px] overflow-y-auto tab-content active code-text">
+<pre><code><span class="text-syntax-keyword">import</span> asyncio
+<span class="text-syntax-keyword">import</span> socket
+<span class="text-syntax-keyword">import</span> json
+<span class="text-syntax-keyword">import</span> wave
+<span class="text-syntax-keyword">import</span> torch
+<span class="text-syntax-keyword">import</span> numpy <span class="text-syntax-keyword">as</span> np
+<span class="text-syntax-keyword">import</span> pvporcupine
+<span class="text-syntax-keyword">import</span> websockets
+<span class="text-syntax-keyword">import</span> edge_tts
+<span class="text-syntax-keyword">from</span> google <span class="text-syntax-keyword">import</span> genai
+<span class="text-syntax-keyword">from</span> speechbrain.inference.speaker <span class="text-syntax-keyword">import</span> SpeakerRecognition
+
+PICOVOICE_KEY = <span class="text-syntax-string">"YOUR_KEY"</span>
+GEMINI_KEY = <span class="text-syntax-string">"YOUR_KEY"</span>
+client = genai.Client(api_key=GEMINI_KEY)
+
+<span class="text-syntax-comment"># Pre-load Speaker Verification</span>
+spk_verifier = SpeakerRecognition.from_hparams(source=<span class="text-syntax-string">"speechbrain/spkrec-ecapa-voxceleb"</span>, savedir=<span class="text-syntax-string">"tmp"</span>)
+u1_emb = torch.load(<span class="text-syntax-string">"users/user1.pt"</span>)
+u2_emb = torch.load(<span class="text-syntax-string">"users/user2.pt"</span>)
+
+<span class="text-syntax-keyword">async def</span> <span class="text-syntax-function">process_query</span>(audio_buffer):
+    <span class="text-syntax-comment"># Verification (Threshold 0.72)</span>
+    valid, user = verify_speaker(audio_buffer)
+    <span class="text-syntax-keyword">if not</span> valid:
+        <span class="text-syntax-function">print</span>(<span class="text-syntax-string">"[LOCKOUT]"</span>)
+        <span class="text-syntax-keyword">return</span>
+        
+    <span class="text-syntax-comment"># Gemini Processing</span>
+    <span class="text-syntax-keyword">with</span> wave.open(<span class="text-syntax-string">"temp.wav"</span>, <span class="text-syntax-string">"wb"</span>) <span class="text-syntax-keyword">as</span> wf:
+        wf.setnchannels(<span class="text-syntax-number">1</span>); wf.setsampwidth(<span class="text-syntax-number">2</span>); wf.setframerate(<span class="text-syntax-number">16000</span>)
+        wf.writeframes(audio_buffer)
+        
+    uploaded = client.files.upload(file=<span class="text-syntax-string">"temp.wav"</span>)
+    response = client.models.generate_content(
+        model=<span class="text-syntax-string">'gemini-2.5-flash'</span>,
+        contents=[<span class="text-syntax-string">"Listen and answer."</span>, uploaded],
+        config=genai.types.GenerateContentConfig(system_instruction=sys_instruct, temperature=<span class="text-syntax-number">0.5</span>)
+    )
+    
+    <span class="text-syntax-comment"># TTS & Transmission</span>
+    comm = edge_tts.Communicate(response.text, <span class="text-syntax-string">"en-GB-RyanNeural"</span>)
+    <span class="text-syntax-keyword">await</span> comm.save(<span class="text-syntax-string">"reply.mp3"</span>)
+    os.system(<span class="text-syntax-string">"ffmpeg -y -i reply.mp3 -ar 16000 -ac 1 -f s16le reply.raw"</span>)
+    
+    <span class="text-syntax-comment"># Stream via TCP</span>
+    reader, writer = <span class="text-syntax-keyword">await</span> asyncio.open_connection(active_ws.remote_address[<span class="text-syntax-number">0</span>], <span class="text-syntax-number">8080</span>)
+    <span class="text-syntax-keyword">with</span> <span class="text-syntax-function">open</span>(<span class="text-syntax-string">"reply.raw"</span>, <span class="text-syntax-string">"rb"</span>) <span class="text-syntax-keyword">as</span> f:
+        <span class="text-syntax-keyword">while</span> chunk := f.read(<span class="text-syntax-number">1024</span>): writer.write(chunk)
+    writer.close()</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="phase4" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-cyan-main/10 bg-surfaceLight/20">
+        <div class="reveal mb-12 text-center">
+            <h2 class="font-heading text-3xl md:text-4xl font-bold text-white mb-2 uppercase tracking-widest drop-shadow-lg">
+                Phase 4: Fabrication & Integration
+            </h2>
+            <p class="text-cyan-main max-w-2xl mx-auto font-mono text-sm">SAFELY HOUSE ELECTRONICS & TEST LOOP</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Fabrication Info -->
+            <div class="space-y-6 reveal">
+                <div class="hud-border p-8 h-full">
+                    <h3 class="font-heading text-2xl text-cyan-main mb-6 uppercase tracking-wider">4.1 Mechanical Assembly</h3>
+                    <ul class="space-y-6 text-sm text-gray-300 font-sans">
+                        <li class="pl-4 border-l-2 border-cyan-main/30 hover:border-cyan-main transition-colors">
+                            <strong class="text-white block mb-1">Outer Bezel / Arc Reactor</strong>
+                            Construct three-layer circular structure. House 24-LED ring behind a 100mm optical diffusion disc.
+                        </li>
+                        <li class="pl-4 border-l-2 border-cyan-main/30 hover:border-cyan-main transition-colors">
+                            <strong class="text-white block mb-1">Acoustic Isolation</strong>
+                            Mount INMP441 strictly to the upper rim in a silicone grommet facing upward, totally separate from speakers.
+                        </li>
+                        <li class="pl-4 border-l-2 border-cyan-main/30 hover:border-cyan-main transition-colors">
+                            <strong class="text-white block mb-1">Resonance Chambers</strong>
+                            The two series-wired speakers must sit in sealed acoustic pods to prevent airwave cancellation.
+                        </li>
+                        <li class="pl-4 border-l-2 border-cyan-main/30 hover:border-cyan-main transition-colors">
+                            <strong class="text-white block mb-1">Thermal Backplate</strong>
+                            Mount both ESP32-S3 boards with a physical air gap between chips and the rear plastic shield against the chest.
+                        </li>
+                    </ul>
+
+                    <div class="mt-8 bg-amber-main/10 border border-amber-main/30 p-4 rounded text-sm text-gray-300">
+                        <h4 class="text-amber-main font-bold uppercase tracking-widest mb-1">4.2 Safe Power Management</h4>
+                        Do not use raw Li-Po cells. Route a cut USB cable from the 5V power bank. Run positive line through the SPDT slide switch. Check the 1000µF capacitor is tightly seated before flipping switch.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Checkout List -->
+            <div class="reveal delay-100">
+                <div class="hud-border border-cyan-main/50 p-8 h-full bg-cyan-main/5">
+                    <h3 class="font-heading text-2xl text-white mb-6 uppercase tracking-wider border-b border-cyan-dim pb-4">4.3 Final System Checkout</h3>
+                    <p class="text-xs text-cyan-main mb-6 font-mono">Execute checklist prior to live demonstration:</p>
+                    
+                    <ul class="space-y-4 font-sans text-sm text-gray-300">
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">Laptop Python bridge (<code class="text-amber-main bg-black px-1 rounded font-mono">server.py</code>) running on local network.</span>
+                        </li>
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">SPDT slide switch powered on; LEDs pulse Dim Cyan (Standby).</span>
+                        </li>
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">Person 1 says, "Hey JARVIS." LEDs turn bright Cyan immediately.</span>
+                        </li>
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">Person 1 asks, "What is the equivalent resistance formula for a parallel circuit?"</span>
+                        </li>
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">Biometric Check: LEDs spin Amber. Similarity >= 0.72 turns LEDs Green.</span>
+                        </li>
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">Gemini processes audio (LEDs Violet). JARVIS replies through speakers.</span>
+                        </li>
+                        <li class="flex items-start gap-4 cursor-pointer group" onclick="toggleCheck(this)">
+                            <div class="hud-checkbox mt-0.5 group-hover:border-cyan-main"></div>
+                            <span class="group-hover:text-white transition-colors">Third party says "Hey JARVIS, reset system." LEDs flash Red three times (Lockout), ignored.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-cyan-dim bg-deepBg py-10 text-center relative overflow-hidden">
+        <div class="flex justify-center items-center gap-2 mb-4 relative z-10">
+            <div class="w-2 h-2 bg-cyan-main rounded-full animate-ping"></div>
+            <p class="font-mono tracking-[0.2em] text-cyan-main text-xs uppercase">Systems Online</p>
+        </div>
+        <p class="font-heading tracking-widest text-gray-500 text-sm uppercase relative z-10">
+            J.A.R.V.I.S. Prototype // Dual-Person Engineering Team
+        </p>
+    </footer>
+
+    <script>
+        // Tab Switching Logic for Phase 1
+        function switchTab(group, tabId, btnElement) {
+            // Hide contents in this group
+            const contents = document.querySelectorAll(`[id^="${group}-"]`);
+            contents.forEach(el => el.classList.remove('active'));
+            
+            // Reset buttons in this group
+            const buttons = document.querySelectorAll(`.${group}-tab-btn`);
+            buttons.forEach(btn => {
+                btn.classList.remove('text-cyan-main', 'border-cyan-main', 'bg-cyan-main/10');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+            
+            // Activate target content and button
+            document.getElementById(`${group}-${tabId}`).classList.add('active');
+            btnElement.classList.remove('text-gray-400', 'border-transparent');
+            btnElement.classList.add('text-cyan-main', 'border-cyan-main', 'bg-cyan-main/10');
+        }
+
+        // Checklist Check/Uncheck Logic
+        function toggleCheck(element) {
+            const checkbox = element.querySelector('.hud-checkbox');
+            const textSpan = element.querySelector('span');
+            checkbox.classList.toggle('checked');
+            
+            if(checkbox.classList.contains('checked')) {
+                textSpan.classList.add('text-cyan-main');
+                textSpan.classList.remove('text-gray-300');
+            } else {
+                textSpan.classList.remove('text-cyan-main');
+                textSpan.classList.add('text-gray-300');
+            }
+        }
+
+        // Scroll Reveal Intersection Observer
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal').forEach((el) => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
